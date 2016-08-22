@@ -1,0 +1,14 @@
+# Vim
+*~
+.*.swp
+
+# Vita
+eboot.bin
+**.elf
+**.sfo
+**.velf
+**.vpk
+
+# C
+**.o
+
