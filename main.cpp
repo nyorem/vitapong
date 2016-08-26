@@ -5,15 +5,19 @@
 #include <psp2/kernel/processmgr.h>
 #include "vita2dpp.h"
 
+#define EXIT_COMBO SCE_CTRL_START
+#define SCORE_WIN 10
+
 struct Paddle : Rectangle {
     Paddle (Vec2f const& p0, Vec2f const& dims0) : Rectangle(p0, dims0) {
     }
 
     bool player = true;
+    int score = 0;
 };
 
 struct Ball : Circle {
-    Ball (Vec2f p0, Vec2f v0, float r) : Circle(p0, r), v(v0) {
+    Ball (Vec2f p0, Vec2f v0, float r) : Circle(p0, r), v0(v0), v(v0) {
     }
 
     void move (float dt) {
@@ -28,7 +32,30 @@ struct Ball : Circle {
         return v;
     }
 
-    Vec2f v;
+    bool collide (Paddle const& paddle) {
+        if (intersects(paddle)) {
+            // Y coordinate of the intersection point (between -1 and 1)
+            float interY = y() + radius() / 2,
+                  relativeInterY = interY - paddle.top(),
+                  normalizedInterY = relativeInterY / paddle.height();
+            normalizedInterY = 2 * normalizedInterY - 1;
+
+            // Angle
+            float maxBounceAngle = M_PI / 6;
+            float bounceAngle = normalizedInterY * maxBounceAngle;
+            float n0 = v0.length();
+
+            // Update speed
+            v.x = (paddle.player ? n0 : -n0) * cos(bounceAngle);
+            v.y = n0 * sin(bounceAngle);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    Vec2f v0, v;
 };
 
 enum class GameState {
@@ -40,6 +67,21 @@ enum class GameState {
 enum class GameMode {
     OnePlayer,
     TwoPlayers,
+};
+
+// TODO
+struct Game {
+    Game () {
+    }
+
+    void update (float dt) {
+    }
+
+    void run () {
+    }
+
+    GameState state;
+    GameMode mode;
 };
 
 int main (void) {
@@ -85,41 +127,46 @@ int main (void) {
         input.update();
 
         // Exit with Start
-        if (input.isButtonPressed(SCE_CTRL_START))
+        if (input.isButtonPressed(EXIT_COMBO))
             break;
 
-        // Move the paddle with the arrows
+        // Player moves with the arrows
         if (input.isButtonPressed(SCE_CTRL_UP)) {
             player.moveY(-paddle_speed);
         } else if (input.isButtonPressed(SCE_CTRL_DOWN)) {
             player.moveY(+paddle_speed);
         }
 
-        // Move the paddle with the left analog stick
+        // Player moves with the left analog stick
         if (abs(input.ly) > 50) {
             player.moveY(paddle_speed * input.ly / 50.0f);
+        }
+
+        // CPU moves with the right analog stick
+        if (abs(input.ry) > 50) {
+            cpu.moveY(paddle_speed * input.ry / 50.0f);
         }
 
         // Move ball
         ball.move(dt);
 
-        // TODO: move CPU with the right analog stick in two player mode
-
         // Check collisions
-        // Player
-        // TODO
+        // Player with screen boundaries
         if (player.y() < 0.0f) {
             player.y() = 0.0f;
         } else if (player.y() + player.height() > SCREEN_H) {
             player.y() = SCREEN_H - player.height();
         }
 
-        // CPU
-        // TODO
+        // CPU with screen boundaries
+        if (cpu.y() < 0.0f) {
+            cpu.y() = 0.0f;
+        } else if (cpu.y() + cpu.height() > SCREEN_H) {
+            cpu.y() = SCREEN_H - cpu.height();
+        }
 
-        // Ball
-        // With screen boundaries
-        // TODO
+        // Ball with screen boundaries
+        // TODO: sleep before putting the ball back in the center
         if (ball.y() < 0.0f) {
             ball.y() = 0.0f;
             ball.speed().y = -ball.speed().y;
@@ -127,15 +174,22 @@ int main (void) {
             ball.y() = SCREEN_H - 2 * ball.radius();
             ball.speed().y = -ball.speed().y;
         } else if (ball.x() < 0.0f) {
-            ball.x() = 0.0f;
-            ball.speed().x = -ball.speed().x;
+            ball.x() = SCREEN_W / 2;
+            ball.y() = SCREEN_H / 2;
+            cpu.score++;
         } else if (ball.x() + 2 * ball.radius() > SCREEN_W) {
-            ball.x() = SCREEN_W - 2 * ball.radius();
-            ball.speed().x = -ball.speed().x;
+            ball.x() = SCREEN_W / 2;
+            ball.y() = SCREEN_H / 2;
+            player.score++;
         }
 
-        // With the paddles
+        // Ball with the paddles
         // TODO
+        if (ball.collide(player)) {
+            // TODO: sound
+        } else if (ball.collide(cpu)) {
+            // TODO: sound
+        }
 
         // Render
         vita2d_start_drawing();

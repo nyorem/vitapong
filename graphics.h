@@ -47,6 +47,17 @@ struct Sprite {
         return p.y;
     }
 
+    // AABB
+    virtual float left () const = 0;
+    virtual float right () const = 0;
+    virtual float top () const = 0;
+    virtual float bottom () const = 0;
+
+    bool intersects (Sprite const& other) const {
+        return right()  >= other.left() && left() <= other.right() &&
+               bottom() >= other.top()  && top()  <= other.bottom();
+    }
+
     Vec2f p;
 };
 
@@ -72,6 +83,23 @@ struct Rectangle : Sprite {
         return dims.y;
     }
 
+    float left () const {
+        return x();
+    }
+
+    float right () const {
+        return x() + width();
+    }
+
+    float top () const {
+        return y();
+    }
+
+    float bottom () const {
+        return y() + height();
+    }
+
+
     Vec2f dims;
 };
 
@@ -88,6 +116,22 @@ struct Circle : Sprite {
 
     float radius () const {
         return r;
+    }
+
+    float left () const {
+        return x();
+    }
+
+    float right () const {
+        return x() + 2 * radius();
+    }
+
+    float top () const {
+        return y();
+    }
+
+    float bottom () const {
+        return y() + 2 * radius();
     }
 
     float r;

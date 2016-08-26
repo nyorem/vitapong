@@ -8,7 +8,10 @@ A simple pong clone for the Vita.
 
 # TODO
 
-- Two player mode: right joystick + online multiplayer?
+- Game class
+- Menu + GameMode
+- GameState
 - Audio
+- Two player mode: right joystick + online multiplayer?
 - Icon
 
