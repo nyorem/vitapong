@@ -1,6 +1,7 @@
 TITLE_ID = VITAPONG0
 TARGET   = vitapong
-OBJS     = main.o
+SRCDIR   = src
+OBJS     = src/main.o
 
 LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \
@@ -9,8 +10,10 @@ LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 PREFIX    = arm-vita-eabi
 CC        = $(PREFIX)-gcc
 CXX       = $(PREFIX)-g++
-CFLAGS    = -Wl,-q -Wall -O3
-CXXFLAGS  = -Wl,-q -Wall -O3 -std=gnu++11
+STRIP     = $(PREFIX)-strip
+# TODO: vita-elf-create of optimization level >= 2
+CFLAGS    = -Wl,-q -Wall -O1
+CXXFLAGS  = -Wl,-q -Wall -O1 -std=gnu++11
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET).vpk
@@ -25,13 +28,13 @@ all: $(TARGET).vpk
 		$@
 
 eboot.bin: $(TARGET).velf
-	vita-make-fself $< $@
+	vita-make-fself -s $< $@
 
 %.velf: %.elf
+	$(STRIP) -g $<
 	vita-elf-create $< $@
 
 $(TARGET).elf: $(OBJS)
-	# $(CC) $(CFLAGS) $^ $(LIBS) -o $@
 	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
 
 %.o: %.png

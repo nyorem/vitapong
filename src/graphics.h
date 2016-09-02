@@ -6,10 +6,19 @@
 #include "geometry.h"
 
 struct Sprite {
-    Sprite (float x0, float y0) : p(x0, y0) {
+    Sprite (float x0 = 0.0f, float y0 = 0.0f) : p(x0, y0) {
     }
 
     Sprite (Vec2f const& p) : p(p) {
+    }
+
+    void init (float x0, float y0) {
+        p.x = x0;
+        p.y = y0;
+    }
+
+    void init (Vec2f const& p) {
+        this->p = p;
     }
 
     virtual void render (uint32_t colour) const = 0;
@@ -62,13 +71,28 @@ struct Sprite {
 };
 
 struct Rectangle : Sprite {
-    Rectangle (float x0, float y0, float w, float h) : Sprite(x0, y0), dims(w, h) {
+    Rectangle (float x0 = 0.0f, float y0 = 0.0f, float w = 0.0f, float h = 0.0f) : Sprite(x0, y0), dims(w, h) {
     }
 
     Rectangle (Vec2f const& p0, float w, float h) : Rectangle(p0.x, p0.y, w, h) {
     }
 
     Rectangle (Vec2f const& p0, Vec2f const& dims0) : Rectangle(p0, dims0.x, dims0.y) {
+    }
+
+    void init (float x0, float y0, float w, float h) {
+        p.x = x0;
+        p.y = y0;
+        dims.x = w;
+        dims.y = h;
+    }
+
+    void init (Vec2f const& p0, float w, float h) {
+        init(p0.x, p0.y, w, h);
+    }
+
+    void init (Vec2f const& p0, Vec2f const& dims0) {
+        init(p0, dims0.x, dims0.y);
     }
 
     void render (uint32_t colour) const {
@@ -104,14 +128,24 @@ struct Rectangle : Sprite {
 };
 
 struct Circle : Sprite {
-    Circle (float x0, float y0, float r) : Sprite(x0, y0), r(r) {
+    Circle (float x0 = 0.0f, float y0 = 0.0f, float r = 0.0f) : Sprite(x0, y0), r(r) {
     }
 
     Circle (Vec2f const& p0, float r) : Circle(p0.x, p0.y, r) {
     }
 
+    void init (float x0, float y0, float r) {
+        p.x = x0;
+        p.y = y0;
+        this->r = r;
+    }
+
+    void init (Vec2f const& p0, float r) {
+        init(p0.x, p0.y, r);
+    }
+
     void render (uint32_t colour) const {
-        vita2d_draw_fill_circle(x(), y(), r, colour);
+        vita2d_draw_fill_circle(x(), y(), radius(), colour);
     }
 
     float radius () const {

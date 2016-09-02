@@ -17,6 +17,7 @@ struct InputState {
         sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
 
         memset(&pad, 0, sizeof(pad));
+        memset(&oldpad, 0, sizeof(oldpad));
         memset(&touchpad_front, 0, sizeof(touchpad_front));
         memset(&touchpad_back, 0, sizeof(touchpad_back));
     }
@@ -32,10 +33,23 @@ struct InputState {
         ly = (signed char) pad.ly - 128;
         rx = (signed char) pad.rx - 128;
         ry = (signed char) pad.ry - 128;
+
+        if (firstUpdate) {
+            memcpy(&oldpad, &pad, sizeof(pad));
+            firstUpdate = false;
+        }
+    }
+
+    void endUpdate () {
+        memcpy(&oldpad, &pad, sizeof(pad));
     }
 
     bool isButtonPressed (int button) const {
         return pad.buttons & button;
+    }
+
+    bool isButtonPressedOnce (int button) const {
+        return isButtonPressed(button) && !(oldpad.buttons & button);
     }
 
     bool isButtonReleased (int button) const {
@@ -58,7 +72,8 @@ struct InputState {
         return Vec2f(x, y);
     }
 
-    SceCtrlData pad;
+    bool firstUpdate = true;
+    SceCtrlData oldpad, pad;
     SceTouchData touchpad_front, touchpad_back;
     signed char lx, ly, rx, ry;
 };

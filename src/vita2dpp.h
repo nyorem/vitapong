@@ -7,6 +7,7 @@
 #include "geometry.h"
 #include "graphics.h"
 #include "input.h"
+#include "psp2_utils.h"
 #include "utils.h"
 
 #endif
