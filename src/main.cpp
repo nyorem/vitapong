@@ -9,12 +9,13 @@
 
 #include "vita2dpp.h"
 
-#define PADDLE_W (20)
-#define PADDLE_H (120)
-#define PADDLE_SPEED (250.0f)
-#define BALL_SPEED (300.0f)
-
-#define SCORE_WIN 10
+// Constants
+#define PADDLE_W (20.0f)
+#define PADDLE_H (120.0f)
+#define PADDLE_SPEED (7.5f)
+#define BALL_SPEED (10.0f)
+#define SCORE_WIN (10)
+#define EXIT_COMBO (SCE_CTRL_LTRIGGER | SCE_CTRL_RTRIGGER)
 
 struct Paddle : Rectangle {
     Paddle () : Rectangle() {
@@ -59,8 +60,8 @@ struct Ball : Circle {
         v = v0;
     }
 
-    void move (float dt) {
-        Circle::move(dt * v);
+    void move () {
+        Circle::move(v);
     }
 
     Vec2f speed () const {
@@ -97,7 +98,6 @@ struct Ball : Circle {
     float maxBounceAngle = M_PI / 6;
 };
 
-// TODO
 enum class GameState {
     Menu,
     Play,
@@ -172,18 +172,8 @@ struct Game {
         // Load PGF font
         pgf = vita2d_load_default_pgf();
 
-        // Ball
-        ball.init(Vec2f(SCREEN_W / 2, SCREEN_H / 2),
-                  10);
-
-        // Paddles
-        player.init(Vec2f(10, SCREEN_H / 2 - PADDLE_H / 2),
-                    Vec2f(PADDLE_W, PADDLE_H));
-        player.player = true;
-
-        cpu.init(Vec2f(SCREEN_W - 10 - PADDLE_W, SCREEN_H / 2 - PADDLE_H / 2),
-                 Vec2f(PADDLE_W, PADDLE_H));
-        cpu.player = false;
+        // Objects
+        restart();
 
         // Menu
         menu.init("Pong");
@@ -197,12 +187,24 @@ struct Game {
         state = GameState::Menu;
         exit = false;
         debug = false;
+
+        // Ball
+        ball.init(Vec2f(SCREEN_W / 2, SCREEN_H / 2),
+                  10);
+
+        // Paddles
+        player.init(Vec2f(10, SCREEN_H / 2 - PADDLE_H / 2),
+                    Vec2f(PADDLE_W, PADDLE_H));
+        player.player = true;
+
+        cpu.init(Vec2f(SCREEN_W - 10 - PADDLE_W, SCREEN_H / 2 - PADDLE_H / 2),
+                 Vec2f(PADDLE_W, PADDLE_H));
+        cpu.player = false;
     }
 
     void handleInput () {
         // Exit
-        if (input.isButtonPressed(SCE_CTRL_LTRIGGER) &&
-            input.isButtonPressed(SCE_CTRL_RTRIGGER)) {
+        if (input.isButtonPressed(EXIT_COMBO)) {
             exit = true;
         }
 
@@ -247,38 +249,65 @@ struct Game {
                     state = GameState::Pause;
                 }
 
-                // Player moves with the left analog stick
+                // Player moves with the left analog stick or Up, Down arrows
                 if (abs(input.ly) > 50) {
-                    player.moveY(dt * PADDLE_SPEED * input.ly / 50.0f);
+                    player.moveY(PADDLE_SPEED * input.ly / 50.0f);
                 }
 
-                // CPU moves with the right analog stick
-                if (abs(input.ry) > 50) {
-                    cpu.moveY(dt * PADDLE_SPEED * input.ry / 50.0f);
+                if (input.isButtonPressed(SCE_CTRL_UP)) {
+                    player.moveY(-PADDLE_SPEED);
+                } else if (input.isButtonPressed(SCE_CTRL_DOWN)) {
+                    player.moveY(PADDLE_SPEED);
+                }
+
+                switch (mode) {
+                    case GameMode::OnePlayer:
+                        // TODO
+                        break;
+
+                    case GameMode::TwoPlayers:
+                        // CPU (or Player 2) moves with the right analog stick or Triangle, Cross
+                        if (abs(input.ry) > 50) {
+                            cpu.moveY(PADDLE_SPEED * input.ry / 50.0f);
+                        }
+
+                        if (input.isButtonPressed(SCE_CTRL_TRIANGLE)) {
+                            cpu.moveY(-PADDLE_SPEED);
+                        } else if (input.isButtonPressed(SCE_CTRL_CROSS)) {
+                            cpu.moveY(PADDLE_SPEED);
+                        }
+                        break;
                 }
                 break;
 
             case GameState::Pause:
                 // Resume
-                if (input.isButtonPressed(SCE_CTRL_START)) {
+                if (input.isButtonPressedOnce(SCE_CTRL_START)) {
                     state = GameState::Play;
+                }
+
+                // Go back to menu
+                if (input.isButtonPressedOnce(SCE_CTRL_CIRCLE)) {
+                    restart();
                 }
                 break;
 
             case GameState::GameOver:
-                // TODO
-                if (input.isButtonPressed(SCE_CTRL_START)) {
-                    state = GameState::Menu;
+                if (input.isButtonPressedOnce(SCE_CTRL_START)) {
+                    restart();
                 }
                 break;
         }
     }
 
-    void update (float dt) {
+    void update () {
         handleInput();
 
+        if (state != GameState::Play)
+            return;
+
         // Move ball
-        ball.move(dt);
+        ball.move();
 
         // Check collisions
         // Player with screen boundaries
@@ -346,23 +375,22 @@ struct Game {
                 break;
 
             case GameState::Pause:
-                vita2d_pgf_draw_textf(pgf, SCREEN_W / 2 - 100, SCREEN_H / 2, WHITE, 1.0f, "Press Start to resume");
+                vita2d_pgf_draw_textf(pgf, SCREEN_W / 2 - 150, SCREEN_H / 2, WHITE, 1.0f, "Press Start to resume");
+                vita2d_pgf_draw_textf(pgf, SCREEN_W / 2 - 150, SCREEN_H / 2 + 20, WHITE, 1.0f, "Press Circle to return to Menu");
                 break;
 
             case GameState::GameOver:
-                // TODO
+                vita2d_pgf_draw_textf(pgf,
+                                      SCREEN_W / 2 - 100, SCREEN_H / 2, WHITE, 1.0f, "Press Start to restart");
                 break;
         }
     }
 
     int run () {
         while (! exit) {
-            // Prevent the screen from turning off
-            sceKernelPowerTick(0);
-
             // Update
             input.update();
-            update(dt);
+            update();
             input.endUpdate();
 
             // Render
@@ -379,11 +407,11 @@ struct Game {
                 last_micros = cur_micros;
                 fps = (frames/(double) dt_micros) * 1000000.0f;
                 frames = 0;
-                dt = 1.0f / fps;
             }
 
             frames++;
 
+            vita2d_wait_rendering_done();
             vita2d_swap_buffers();
         }
         vita2d_fini();
@@ -400,7 +428,6 @@ struct Game {
     SceUInt64 cur_micros = 0, dt_micros = 0, last_micros = 0;
     uint32_t frames = 0;
     float fps = 0.0f;
-    float dt = 0.0f;
 
     InputState input;
     bool exit = false;

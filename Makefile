@@ -3,17 +3,17 @@ TARGET   = vitapong
 SRCDIR   = src
 OBJS     = src/main.o
 
-LIBS = -lvita2d -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
+LIBS = -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \
-	-lSceCommonDialog_stub -lSceTouch_stub -lfreetype -lpng -ljpeg -lz -lm -lc
+	-lSceCommonDialog_stub -lSceTouch_stub \
+	-lfreetype -lpng -ljpeg -lz -lm -lc -lvita2d \
 
 PREFIX    = arm-vita-eabi
 CC        = $(PREFIX)-gcc
 CXX       = $(PREFIX)-g++
 STRIP     = $(PREFIX)-strip
-# TODO: vita-elf-create of optimization level >= 2
-CFLAGS    = -Wl,-q -Wall -O1
-CXXFLAGS  = -Wl,-q -Wall -O1 -std=gnu++11
+CFLAGS    = -Wl,-q -Wall -O3
+CXXFLAGS = $(CFLAGS) -std=gnu++11 -fno-rtti -fno-exceptions
 ASFLAGS = $(CFLAGS)
 
 all: $(TARGET).vpk
