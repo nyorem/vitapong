@@ -1,12 +1,13 @@
 TITLE_ID = VITAPONG0
 TARGET   = vitapong
 SRCDIR   = src
-OBJS     = src/main.o
+OBJS     = $(SRCDIR)/main.o
 
 LIBS = -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \
-	-lSceCommonDialog_stub -lSceTouch_stub \
-	-lfreetype -lpng -ljpeg -lz -lm -lc -lvita2d \
+	-lSceTouch_stub -lSceAudio_stub \
+	-lfreetype -lpng -ljpeg -lz -lm -lc \
+	-lvita2d \
 
 PREFIX    = arm-vita-eabi
 CC        = $(PREFIX)-gcc
@@ -25,6 +26,8 @@ all: $(TARGET).vpk
 		--add sce_sys/livearea/contents/bg.png=sce_sys/livearea/contents/bg.png \
 		--add sce_sys/livearea/contents/startup.png=sce_sys/livearea/contents/startup.png \
 		--add sce_sys/livearea/contents/template.xml=sce_sys/livearea/contents/template.xml \
+		--add data/beep.wav=data/beep.wav \
+		--add data/boop.wav=data/boop.wav \
 		$@
 
 eboot.bin: $(TARGET).velf
