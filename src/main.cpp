@@ -5,9 +5,8 @@
 #include <cmath>
 #include <vector>
 
-#include <psp2/kernel/processmgr.h>
-
 #include "vita2dpp.h"
+#include "vita_audio.h"
 
 // Constants
 #define PADDLE_W (20.0f)
@@ -22,6 +21,10 @@ struct Paddle : Rectangle {
     }
 
     Paddle (Vec2f const& p0, Vec2f const& dims0) : Rectangle(p0, dims0) {
+    }
+
+    void clear () {
+        score = 0;
     }
 
     bool player = true;
@@ -181,6 +184,14 @@ struct Game {
         menu.add("One Player");
         menu.add("Two Players");
         menu.add("Quit");
+
+        // Audio
+        // Library
+        vitaWavInit();
+
+        // Sounds
+        beep = vitaWavLoad("app0:data/beep.wav");
+        boop = vitaWavLoad("app0:data/boop.wav");
     }
 
     void restart () {
@@ -196,10 +207,12 @@ struct Game {
         player.init(Vec2f(10, SCREEN_H / 2 - PADDLE_H / 2),
                     Vec2f(PADDLE_W, PADDLE_H));
         player.player = true;
+        player.clear();
 
         cpu.init(Vec2f(SCREEN_W - 10 - PADDLE_W, SCREEN_H / 2 - PADDLE_H / 2),
                  Vec2f(PADDLE_W, PADDLE_H));
         cpu.player = false;
+        cpu.clear();
     }
 
     void handleInput () {
@@ -249,7 +262,7 @@ struct Game {
                     state = GameState::Pause;
                 }
 
-                // Player moves with the left analog stick or Up, Down arrows
+                // Player moves with the left analog stick or Up / Down arrows
                 if (abs(input.ly) > 50) {
                     player.moveY(PADDLE_SPEED * input.ly / 50.0f);
                 }
@@ -266,7 +279,7 @@ struct Game {
                         break;
 
                     case GameMode::TwoPlayers:
-                        // CPU (or Player 2) moves with the right analog stick or Triangle, Cross
+                        // CPU (or Player 2) moves with the right analog stick or Triangle / Cross
                         if (abs(input.ry) > 50) {
                             cpu.moveY(PADDLE_SPEED * input.ry / 50.0f);
                         }
@@ -344,8 +357,10 @@ struct Game {
         // Ball with the paddles
         if (ball.collide(player)) {
             // TODO: sound
+            vitaWavPlay(beep);
         } else if (ball.collide(cpu)) {
             // TODO: sound
+            vitaWavPlay(boop);
         }
 
         if (player.score >= SCORE_WIN) {
@@ -419,6 +434,8 @@ struct Game {
         // Cleanup
         vita2d_free_pgf(pgf);
 
+        vitaWavShutdown();
+
         sceKernelExitProcess(0);
 
         return 0;
@@ -436,6 +453,9 @@ struct Game {
     Paddle player, cpu;
     Ball ball;
     Menu menu;
+
+    // Sounds
+    vitaWav *beep = nullptr, *boop = nullptr;
 
     GameState state = GameState::Menu;
     GameMode mode;

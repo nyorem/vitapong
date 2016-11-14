@@ -3,9 +3,9 @@
 
 #include <vita2d.h>
 
-#include "constants.h"
 #include "geometry.h"
 #include "graphics.h"
+#include "graphics_constants.h"
 #include "input.h"
 #include "psp2_utils.h"
 #include "utils.h"

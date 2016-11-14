@@ -1,9 +1,21 @@
 TITLE_ID = VITAPONG0
 TARGET   = vitapong
-SRCDIR   = src
-OBJS     = $(SRCDIR)/main.o
 
-LIBS = -lSceKernel_stub -lSceDisplay_stub -lSceGxm_stub \
+SRCDIR   = src
+
+OBJS     = $(SRCDIR)/main.o \
+	   $(SRCDIR)/vita_audio.o \
+
+HEADERS  = $(SRCDIR)/geometry.h \
+	   $(SRCDIR)/graphics_constants.h \
+	   $(SRCDIR)/graphics.h \
+	   $(SRCDIR)/input.h \
+	   $(SRCDIR)/psp2_utils.h \
+	   $(SRCDIR)/utils.h \
+	   $(SRCDIR)/vita2dpp.h \
+	   $(SRCDIR)/vita_audio.h \
+
+LIBS = -lSceDisplay_stub -lSceGxm_stub \
 	-lSceSysmodule_stub -lSceCtrl_stub -lScePgf_stub \
 	-lSceTouch_stub -lSceAudio_stub \
 	-lfreetype -lpng -ljpeg -lz -lm -lc \
@@ -14,8 +26,8 @@ CC        = $(PREFIX)-gcc
 CXX       = $(PREFIX)-g++
 STRIP     = $(PREFIX)-strip
 CFLAGS    = -Wl,-q -Wall -O3
-CXXFLAGS = $(CFLAGS) -std=gnu++11 -fno-rtti -fno-exceptions
-ASFLAGS = $(CFLAGS)
+CXXFLAGS  = $(CFLAGS) -std=gnu++11 -fno-rtti -fno-exceptions
+ASFLAGS   = $(CFLAGS)
 
 all: $(TARGET).vpk
 
@@ -37,8 +49,8 @@ eboot.bin: $(TARGET).velf
 	$(STRIP) -g $<
 	vita-elf-create $< $@
 
-$(TARGET).elf: $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
+$(TARGET).elf: $(OBJS) $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBS) -o $@
 
 %.o: %.png
 	$(PREFIX)-ld -r -b binary -o $@ $^
@@ -54,3 +66,4 @@ vpksend: $(TARGET).vpk
 send: eboot.bin
 	curl -T eboot.bin ftp://$(PSVITAIP):1337/ux0:/app/$(TITLE_ID)/
 	@echo "Sent."
+

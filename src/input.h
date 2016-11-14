@@ -6,9 +6,10 @@
 
 #include "utils.h"
 
-// TODO: handle multitouch (see VitaTester)
 struct InputState {
     InputState () {
+        firstUpdate = true;
+
         // Enable analog sticks
         sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 
@@ -56,17 +57,21 @@ struct InputState {
         return ! isButtonPressed(button);
     }
 
+    int numberTouches (int touchpad) const {
+        return touchpad == 0 ? touchpad_front.reportNum : touchpad_back.reportNum;
+    }
+
     bool isTouchpadActive (int touchpad) const {
         return touchpad == 0 ? (touchpad_front.reportNum > 0) : (touchpad_back.reportNum > 0);
     }
 
-    Vec2f getTouchpadFront () const {
+    Vec2f getTouchpadFront (int i = 0) const {
         float x = lerp(touchpad_front.report[0].x, TOUCHPAD_FRONT_W, SCREEN_W),
               y = lerp(touchpad_front.report[0].y, TOUCHPAD_FRONT_H, SCREEN_H);
         return Vec2f(x, y);
     }
 
-    Vec2f getTouchpadBack () const {
+    Vec2f getTouchpadBack (int i = 0) const {
         float x = lerp(touchpad_back.report[0].x, TOUCHPAD_BACK_W, SCREEN_W),
               y = lerp(touchpad_back.report[0].y, TOUCHPAD_BACK_H, SCREEN_H);
         return Vec2f(x, y);
