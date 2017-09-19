@@ -18,8 +18,9 @@ enum {
 };
 
 int vita2d_pgf_draw_aligned_text (vita2d_pgf* font, int x, int y,
-                                  unsigned int color, float scale, const char* text,
-                                  int horiz, int vert) {
+                                  unsigned int color, float scale,
+                                  int horiz, int vert,
+                                  const char* text) {
     int width = -1, height = -1;
     vita2d_pgf_text_dimensions(font, scale, text, &width, &height);
 
@@ -116,7 +117,7 @@ struct Ball : Circle {
 
             // Angle
             float bounceAngle = normalizedInterY * maxBounceAngle;
-            float n0 = v0.length();
+            float n0 = glm::length(v0);
 
             // Update speed
             v.x = (paddle.player ? n0 : -n0) * cos(bounceAngle);
@@ -164,11 +165,10 @@ struct Menu {
         choices.emplace_back(name);
     }
 
-    void render () const {
-        int x = SCREEN_W / 2 - 100, y = SCREEN_H / 2 - 100;
-
-        vita2d_pgf_draw_textf(pgf, x, y, WHITE, 2.0f, title);
-        y += 40;
+    void render (int x  = SCREEN_W / 2, int y = SCREEN_H / 2,
+                 int horiz = TEXT_CENTER, int vert = TEXT_CENTER) const {
+        vita2d_pgf_draw_aligned_text(pgf, x, y, WHITE, 2.0f, horiz, vert, title);
+        y += 50;
 
         for (unsigned int i = 0; i < choices.size(); ++i) {
             int c = WHITE;
@@ -176,7 +176,7 @@ struct Menu {
                 c = RED;
             }
 
-            vita2d_pgf_draw_textf(pgf, x, y, c, 1.0f, choices[i].name);
+            vita2d_pgf_draw_aligned_text(pgf, x, y, c, 1.0f, horiz, vert, choices[i].name);
             y += 20;
         }
     }
@@ -402,7 +402,7 @@ struct Game {
     void render () const {
         switch (state) {
             case GameState::Menu:
-                menu.render();
+                menu.render(SCREEN_W / 2, SCREEN_H / 2 - 100);
                 break;
 
             case GameState::Play:
@@ -420,11 +420,13 @@ struct Game {
 
             case GameState::Pause:
                 vita2d_pgf_draw_aligned_text(pgf, SCREEN_W / 2, SCREEN_H / 2,
-                                             WHITE, 1.0f, "Press Start to resume",
-                                             TEXT_CENTER, TEXT_CENTER);
+                                             WHITE, 1.0f,
+                                             TEXT_CENTER, TEXT_CENTER,
+                                             "Press Start to resume");
                 vita2d_pgf_draw_aligned_text(pgf, SCREEN_W / 2, SCREEN_H / 2 + 20,
-                                             WHITE, 1.0f, "Press Circle to return to Menu",
-                                             TEXT_CENTER, TEXT_CENTER);
+                                             WHITE, 1.0f,
+                                             TEXT_CENTER, TEXT_CENTER,
+                                             "Press Circle to return to Menu");
                 break;
 
             case GameState::GameOver:

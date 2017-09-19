@@ -76,7 +76,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # Create Vita artifacts
-vita_create_self(eboot.bin ${PROJECT_NAME} UNSAFE)
+vita_create_self(eboot.bin ${PROJECT_NAME} SAFE)
 vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}
