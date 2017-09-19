@@ -12,3 +12,5 @@ eboot.bin
 # C
 **.o
 
+build/
+rel/

@@ -8,7 +8,7 @@
 
 static vitaWav vitaWavInfo[VITA_WAV_MAX_SLOTS];
 static int vitaWavPlaying[VITA_WAV_MAX_SLOTS];
-static unsigned long vitaWavId[VITA_WAV_MAX_SLOTS];
+static int vitaWavId[VITA_WAV_MAX_SLOTS];
 
 static short *vitaWavSamples;
 static unsigned long vitaWavReq;
@@ -55,7 +55,7 @@ void vitaAudioSetChannelCallback(int channel, vitaAudioCallback callback, void *
 	}
 }
 
-static int vitaAudioOutBlocking(unsigned int channel, int left, int right, void *data)
+static int vitaAudioOutBlocking(unsigned int channel, unsigned int left, unsigned int right, void *data)
 {
 	if (!vitaAudioReady)
 		return(-1);
@@ -74,7 +74,7 @@ static int vitaAudioOutBlocking(unsigned int channel, int left, int right, void 
 	return sceAudioOutOutput(vitaAudioStatus[channel].handle, data);
 }
 
-static int vitaAudioChannelThread(unsigned int args, void *argp)
+static int vitaAudioChannelThread(int args, void *argp)
 {
 	volatile int bufidx = 0;
 
@@ -90,7 +90,7 @@ static int vitaAudioChannelThread(unsigned int args, void *argp)
 		{
 			callback(bufptr, VITA_NUM_AUDIO_SAMPLES, vitaAudioStatus[channel].data);
 		} else {
-			unsigned int *ptr= (unsigned int*) bufptr;
+			unsigned int *ptr=bufptr;
 			int i;
 			for (i=0; i<VITA_NUM_AUDIO_SAMPLES; ++i) *(ptr++)=0;
 		}
@@ -150,7 +150,7 @@ int vitaAudioInit(int priority)
 	for (i = 0; i < VITA_NUM_AUDIO_CHANNELS; i++)
 	{
 		str[14] = '0' + i;
-		vitaAudioStatus[i].threadHandle = sceKernelCreateThread(str, &vitaAudioChannelThread, priority, 0x10000, 0, 0, NULL);
+		vitaAudioStatus[i].threadHandle = sceKernelCreateThread(str, (void*)&vitaAudioChannelThread, priority, 0x10000, 0, 0, NULL);
 
 		if (vitaAudioStatus[i].threadHandle < 0)
 		{
@@ -218,12 +218,12 @@ void vitaAudioShutdown(void)
 
 static void wavout_snd_callback(void *_buf, unsigned int _reqn, void *pdata)
 {
-	unsigned int i,slot;
+	int i,slot;
 	vitaWav *wi;
 	unsigned long ptr, frac;
-	short *buf = (short*) _buf;
+	short *buf = _buf;
 
-	vitaWavSamples = (short*) _buf;
+	vitaWavSamples = _buf;
 	vitaWavReq = _reqn;
 
 	for(i = 0; i < _reqn; i++)
@@ -382,7 +382,7 @@ int vitaWavPlay(vitaWav *wav)
 	return(1);
 }
 
-static vitaWav *vitaWavLoadInternal(vitaWav *wav, unsigned char *wavfile, unsigned long size)
+static vitaWav *vitaWavLoadInternal(vitaWav *wav, unsigned char *wavfile, int size)
 {
 	unsigned long channels;
 	unsigned long samplerate;
@@ -481,8 +481,8 @@ vitaWav *vitaWavLoad(const char *filename)
 	lSize = sceIoLseek32(fd, 0, SCE_SEEK_END);
 	sceIoLseek32(fd, 0, SCE_SEEK_SET);
 
-	wav = (vitaWav*) malloc(lSize + sizeof(wav));
-	wavfile = (unsigned char*)(wav) + sizeof(wav);
+	wav = malloc(lSize + sizeof(vitaWav));
+	wavfile = (unsigned char*)(wav) + sizeof(vitaWav);
 
 	filelen = sceIoRead(fd, wavfile, lSize);
 
@@ -496,7 +496,7 @@ vitaWav *vitaWavLoadMemory(const unsigned char *buffer, int size)
 	unsigned char *wavfile;
 	vitaWav *wav;
 
-	wav = (vitaWav*) malloc(size + sizeof(wav));
+	wav = malloc(size + sizeof(wav));
 	wavfile = (unsigned char*)(wav) + sizeof(wav);
 
 	memcpy(wavfile, (unsigned char*)buffer, size);

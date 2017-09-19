@@ -2,11 +2,42 @@
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
+#define M_PI 3.14159265358979323846
 #include <cmath>
 #include <vector>
 
 #include "vita2dpp.h"
 #include "vita_audio.h"
+
+enum {
+    TEXT_TOP    = 0,
+    TEXT_CENTER = 1,
+    TEXT_BOTTOM = 2,
+    TEXT_LEFT   = 3,
+    TEXT_RIGHT  = 4,
+};
+
+int vita2d_pgf_draw_aligned_text (vita2d_pgf* font, int x, int y,
+                                  unsigned int color, float scale, const char* text,
+                                  int horiz, int vert) {
+    int width = -1, height = -1;
+    vita2d_pgf_text_dimensions(font, scale, text, &width, &height);
+
+    // left (horizontal) and top (vertical) do not need any processing
+    if (horiz == TEXT_CENTER) {
+        x -= 0.5 * width;
+    } else if (horiz == TEXT_RIGHT) {
+        x -= width;
+    }
+
+    if (vert == TEXT_CENTER) {
+        y -= 0.5 * height;
+    } else if (vert == TEXT_BOTTOM) {
+        y -= height;
+    }
+
+    return vita2d_pgf_draw_text(font, x, y, color, scale, text);
+}
 
 // Constants
 #define PADDLE_W (20.0f)
@@ -356,10 +387,8 @@ struct Game {
 
         // Ball with the paddles
         if (ball.collide(player)) {
-            // TODO: sound
             vitaWavPlay(beep);
         } else if (ball.collide(cpu)) {
-            // TODO: sound
             vitaWavPlay(boop);
         }
 
@@ -390,18 +419,22 @@ struct Game {
                 break;
 
             case GameState::Pause:
-                vita2d_pgf_draw_textf(pgf, SCREEN_W / 2 - 150, SCREEN_H / 2, WHITE, 1.0f, "Press Start to resume");
-                vita2d_pgf_draw_textf(pgf, SCREEN_W / 2 - 150, SCREEN_H / 2 + 20, WHITE, 1.0f, "Press Circle to return to Menu");
+                vita2d_pgf_draw_aligned_text(pgf, SCREEN_W / 2, SCREEN_H / 2,
+                                             WHITE, 1.0f, "Press Start to resume",
+                                             TEXT_CENTER, TEXT_CENTER);
+                vita2d_pgf_draw_aligned_text(pgf, SCREEN_W / 2, SCREEN_H / 2 + 20,
+                                             WHITE, 1.0f, "Press Circle to return to Menu",
+                                             TEXT_CENTER, TEXT_CENTER);
                 break;
 
             case GameState::GameOver:
-                vita2d_pgf_draw_textf(pgf,
+                vita2d_pgf_draw_text(pgf,
                                       SCREEN_W / 2 - 100, SCREEN_H / 2, WHITE, 1.0f, "Press Start to restart");
                 break;
         }
     }
 
-    int run () {
+    void run () {
         while (! exit) {
             // Update
             input.update();
@@ -435,10 +468,6 @@ struct Game {
         vita2d_free_pgf(pgf);
 
         vitaWavShutdown();
-
-        sceKernelExitProcess(0);
-
-        return 0;
     }
 
     // FPS counting
@@ -465,6 +494,10 @@ struct Game {
 };
 
 int main (void) {
-    return Game().run();
+    Game().run();
+
+    sceKernelExitProcess(0);
+
+    return 0;
 }
 

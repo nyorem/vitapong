@@ -14,8 +14,8 @@ struct InputState {
         sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 
         // Enable front and back touchscreen
-        sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, 1);
-        sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, 1);
+        sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
+        sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
 
         memset(&pad, 0, sizeof(pad));
         memset(&oldpad, 0, sizeof(oldpad));
@@ -66,15 +66,21 @@ struct InputState {
     }
 
     Vec2f getTouchpadFront (int i = 0) const {
-        float x = lerp(touchpad_front.report[0].x, TOUCHPAD_FRONT_W, SCREEN_W),
-              y = lerp(touchpad_front.report[0].y, TOUCHPAD_FRONT_H, SCREEN_H);
+        float x = lerp(touchpad_front.report[i].x, TOUCHPAD_FRONT_W, SCREEN_W),
+              y = lerp(touchpad_front.report[i].y, TOUCHPAD_FRONT_H, SCREEN_H);
         return Vec2f(x, y);
     }
 
     Vec2f getTouchpadBack (int i = 0) const {
-        float x = lerp(touchpad_back.report[0].x, TOUCHPAD_BACK_W, SCREEN_W),
-              y = lerp(touchpad_back.report[0].y, TOUCHPAD_BACK_H, SCREEN_H);
+        float x = lerp(touchpad_back.report[i].x, TOUCHPAD_BACK_W, SCREEN_W),
+              y = lerp(touchpad_back.report[i].y, TOUCHPAD_BACK_H, SCREEN_H);
         return Vec2f(x, y);
+    }
+
+    ~InputState () {
+        // Enable front and back touchscreen
+        sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_STOP);
+        sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_STOP);
     }
 
     bool firstUpdate = true;
