@@ -3,8 +3,8 @@
 
 #include <psp2/ctrl.h>
 #include <psp2/touch.h>
-
-#include "utils.h"
+#include <glm/glm.hpp>
+#include "utils.h" // for lerp
 
 struct InputState {
     InputState () {
@@ -65,16 +65,16 @@ struct InputState {
         return touchpad == 0 ? (touchpad_front.reportNum > 0) : (touchpad_back.reportNum > 0);
     }
 
-    Vec2f getTouchpadFront (int i = 0) const {
+    glm::vec2 getTouchpadFront (int i = 0) const {
         float x = lerp(touchpad_front.report[i].x, TOUCHPAD_FRONT_W, SCREEN_W),
               y = lerp(touchpad_front.report[i].y, TOUCHPAD_FRONT_H, SCREEN_H);
-        return Vec2f(x, y);
+        return glm::vec2(x, y);
     }
 
-    Vec2f getTouchpadBack (int i = 0) const {
+    glm::vec2 getTouchpadBack (int i = 0) const {
         float x = lerp(touchpad_back.report[i].x, TOUCHPAD_BACK_W, SCREEN_W),
               y = lerp(touchpad_back.report[i].y, TOUCHPAD_BACK_H, SCREEN_H);
-        return Vec2f(x, y);
+        return glm::vec2(x, y);
     }
 
     ~InputState () {

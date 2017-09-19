@@ -3,7 +3,6 @@
 
 #include <vita2d.h>
 
-#include "geometry.h"
 #include "graphics.h"
 #include "graphics_constants.h"
 #include "input.h"

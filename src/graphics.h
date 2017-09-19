@@ -2,14 +2,13 @@
 #define _GRAPHICS_H_
 
 #include <vita2d.h>
-
-#include "geometry.h"
+#include <glm/glm.hpp>
 
 struct Sprite {
     Sprite (float x0 = 0.0f, float y0 = 0.0f) : p(x0, y0) {
     }
 
-    Sprite (Vec2f const& p) : p(p) {
+    Sprite (glm::vec2 const& p) : p(p) {
     }
 
     void init (float x0, float y0) {
@@ -17,7 +16,7 @@ struct Sprite {
         p.y = y0;
     }
 
-    void init (Vec2f const& p) {
+    void init (glm::vec2 const& p) {
         this->p = p;
     }
 
@@ -28,7 +27,7 @@ struct Sprite {
         p.y += dy;
     }
 
-    void move (Vec2f const& dp) {
+    void move (glm::vec2 const& dp) {
         p += dp;
     }
 
@@ -67,17 +66,17 @@ struct Sprite {
                bottom() >= other.top()  && top()  <= other.bottom();
     }
 
-    Vec2f p;
+    glm::vec2 p;
 };
 
 struct Rectangle : Sprite {
     Rectangle (float x0 = 0.0f, float y0 = 0.0f, float w = 0.0f, float h = 0.0f) : Sprite(x0, y0), dims(w, h) {
     }
 
-    Rectangle (Vec2f const& p0, float w, float h) : Rectangle(p0.x, p0.y, w, h) {
+    Rectangle (glm::vec2 const& p0, float w, float h) : Rectangle(p0.x, p0.y, w, h) {
     }
 
-    Rectangle (Vec2f const& p0, Vec2f const& dims0) : Rectangle(p0, dims0.x, dims0.y) {
+    Rectangle (glm::vec2 const& p0, glm::vec2 const& dims0) : Rectangle(p0, dims0.x, dims0.y) {
     }
 
     void init (float x0, float y0, float w, float h) {
@@ -87,11 +86,11 @@ struct Rectangle : Sprite {
         dims.y = h;
     }
 
-    void init (Vec2f const& p0, float w, float h) {
+    void init (glm::vec2 const& p0, float w, float h) {
         init(p0.x, p0.y, w, h);
     }
 
-    void init (Vec2f const& p0, Vec2f const& dims0) {
+    void init (glm::vec2 const& p0, glm::vec2 const& dims0) {
         init(p0, dims0.x, dims0.y);
     }
 
@@ -124,14 +123,14 @@ struct Rectangle : Sprite {
     }
 
 
-    Vec2f dims;
+    glm::vec2 dims;
 };
 
 struct Circle : Sprite {
     Circle (float x0 = 0.0f, float y0 = 0.0f, float r = 0.0f) : Sprite(x0, y0), r(r) {
     }
 
-    Circle (Vec2f const& p0, float r) : Circle(p0.x, p0.y, r) {
+    Circle (glm::vec2 const& p0, float r) : Circle(p0.x, p0.y, r) {
     }
 
     void init (float x0, float y0, float r) {
@@ -140,7 +139,7 @@ struct Circle : Sprite {
         this->r = r;
     }
 
-    void init (Vec2f const& p0, float r) {
+    void init (glm::vec2 const& p0, float r) {
         init(p0.x, p0.y, r);
     }
 

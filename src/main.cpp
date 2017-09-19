@@ -51,7 +51,7 @@ struct Paddle : Rectangle {
     Paddle () : Rectangle() {
     }
 
-    Paddle (Vec2f const& p0, Vec2f const& dims0) : Rectangle(p0, dims0) {
+    Paddle (glm::vec2 const& p0, glm::vec2 const& dims0) : Rectangle(p0, dims0) {
     }
 
     void clear () {
@@ -66,11 +66,11 @@ struct Ball : Circle {
     Ball () : Circle() {
     }
 
-    Ball (Vec2f const& p0, float r) : Circle(p0, r) {
+    Ball (glm::vec2 const& p0, float r) : Circle(p0, r) {
         setRandomSpeed();
     }
 
-    void init (Vec2f const& p0, float r) {
+    void init (glm::vec2 const& p0, float r) {
         this->p = p0;
         this->r = r;
         setRandomSpeed();
@@ -90,7 +90,7 @@ struct Ball : Circle {
         } else {
             theta = rf(3 * M_PI / 4, 5 * M_PI / 4);
         }
-        v0 = BALL_SPEED * Vec2f(cos(theta), sin(theta));
+        v0 = BALL_SPEED * glm::vec2(cos(theta), sin(theta));
         v = v0;
     }
 
@@ -98,11 +98,11 @@ struct Ball : Circle {
         Circle::move(v);
     }
 
-    Vec2f speed () const {
+    glm::vec2 speed () const {
         return v;
     }
 
-    Vec2f& speed () {
+    glm::vec2& speed () {
         return v;
     }
 
@@ -128,7 +128,7 @@ struct Ball : Circle {
         return false;
     }
 
-    Vec2f v0, v;
+    glm::vec2 v0, v;
     float maxBounceAngle = M_PI / 6;
 };
 
@@ -231,17 +231,17 @@ struct Game {
         debug = false;
 
         // Ball
-        ball.init(Vec2f(SCREEN_W / 2, SCREEN_H / 2),
+        ball.init(glm::vec2(SCREEN_W / 2, SCREEN_H / 2),
                   10);
 
         // Paddles
-        player.init(Vec2f(10, SCREEN_H / 2 - PADDLE_H / 2),
-                    Vec2f(PADDLE_W, PADDLE_H));
+        player.init(glm::vec2(10, SCREEN_H / 2 - PADDLE_H / 2),
+                    glm::vec2(PADDLE_W, PADDLE_H));
         player.player = true;
         player.clear();
 
-        cpu.init(Vec2f(SCREEN_W - 10 - PADDLE_W, SCREEN_H / 2 - PADDLE_H / 2),
-                 Vec2f(PADDLE_W, PADDLE_H));
+        cpu.init(glm::vec2(SCREEN_W - 10 - PADDLE_W, SCREEN_H / 2 - PADDLE_H / 2),
+                 glm::vec2(PADDLE_W, PADDLE_H));
         cpu.player = false;
         cpu.clear();
     }
